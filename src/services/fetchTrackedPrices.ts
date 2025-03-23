@@ -1,74 +1,47 @@
-import puppeteer from "puppeteer";
 import mongoose from "mongoose";
-import PriceModel from "@/models/Price";
+import ProductModel from "@/models/Product";
 
-let isConnected = false;
+const MONGO_URI = process.env.MONGO_URI as string;
+const DB_NAME = process.env.DB_NAME as string;
 
-export async function fetchTrackedPrices() {
-  try {
-    // Connect to MongoDB only if not already connected
-    if (!isConnected) {
-      await mongoose.connect(process.env.MONGO_URI as string);
-      isConnected = true;
-      console.log("✅ Connected to MongoDB");
-    }
-
-    // Scrape price details
-    const priceDetails = await scrapeProduct(
-      "https://mdcomputers.in/product/asus-dual-graphics-card-rtx4060-o8g-v2?language=en-gb",
-      ".special-price"
-    );
-
-    if (!priceDetails) {
-      console.log("⚠️ Price details not found. Skipping update.");
-      return;
-    }
-
-    const { url, price } = priceDetails;
-
-    // Check if the price has changed
-    const lastEntry = await PriceModel.findOne({ url }).sort({ timestamp: -1 });
-
-    if (lastEntry && lastEntry.price === price) {
-      console.log("ℹ️ Price has not changed. No update needed.");
-      return;
-    }
-
-    // Save new price record
-    await PriceModel.create({ url, price });
-
-    console.log("✅ Price updated in MongoDB:", price);
-
-    return priceDetails;
-  } catch (error) {
-    console.error("❌ Error in fetchTrackedPrices:", error);
-  }
+if (!MONGO_URI) {
+  throw new Error("❌ MONGO_URI is missing from environment variables.");
 }
 
-async function scrapeProduct(
-  url: string,
-  selector: string
-): Promise<
-  | {
-      url: string;
-      price: string | undefined;
-    }
-  | undefined
-> {
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
+// ✅ Singleton Connection (Prevents Repeated Connections)
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    console.log("🔄 Using existing MongoDB connection.");
+    return;
+  }
 
   try {
-    // Navigate to the product page
-    await page.goto(url, { waitUntil: "domcontentloaded" });
-
-    // Extract price from the `.product-price-new` class
-    const price = await page.$eval(selector, (el) => el.textContent?.trim());
-
-    return { url, price };
+    await mongoose.connect(MONGO_URI, { dbName: DB_NAME });
+    console.log(`✅ Connected to MongoDB: ${DB_NAME}`);
   } catch (error) {
-    console.error("Scraping error:", error);
-  } finally {
-    await browser.close(); // Always close the browser
+    console.error("❌ MongoDB Connection Error:", error);
+    throw new Error("Failed to connect to MongoDB.");
+  }
+};
+
+// ✅ Fetch Products (No Global `isConnected` Variable)
+export async function fetchTrackedProducts(searchQuery?: string) {
+  try {
+    await connectDB();
+    
+    // Search filter
+    const filter = searchQuery
+      ? {
+          $or: [
+            { productName: { $regex: searchQuery, $options: "i" } }, // Case-insensitive search
+            { productCode: { $regex: searchQuery, $options: "i" } }
+          ],
+        }
+      : {};
+
+    return await ProductModel.find(filter).lean(); // `lean()` improves performance for reads
+  } catch (error) {
+    console.error("❌ Error fetching products:", error);
+    return [];
   }
 }
