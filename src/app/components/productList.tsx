@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Product {
   _id: string;
@@ -17,12 +17,18 @@ interface Product {
   productName: string;
   productCode: string;
   currentPrice: number;
+  lowestPrice: number;
+  highestPrice: number;
   vendor: string;
   productUrl: string;
   isAvailable: boolean;
 }
 
-export default function ProductList({ searchQuery = "" }: { searchQuery: string }) {
+export default function ProductList({
+  searchQuery = "",
+}: {
+  searchQuery: string;
+}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -84,23 +90,36 @@ export default function ProductList({ searchQuery = "" }: { searchQuery: string 
                   alt={product.productName}
                   className="w-full object-cover rounded-md bg-slate-200"
                 />
-                <div className="w-full justify-center text-center">
+                <div className="w-full text-center flex flex-col justify-evenly items-start">
                   <Tooltip>
                     <TooltipTrigger>
-                      <h3 className="text-sm font-semibold line-clamp-2 overflow-hidden">
+                      <h3 className="text-sm font-semibold line-clamp-1 overflow-hidden">
                         {product.productName}
                       </h3>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs text-center">
+                    <TooltipContent className="max-w-xs text-start">
                       {product.productName}
                     </TooltipContent>
                   </Tooltip>
-                  <Separator />
-                  <p className="text-xs text-gray-500">Model: {product.productCode}</p>
-                  <p className="text-sm text-blue-600 font-semibold">₹{product.currentPrice}</p>
-                  <p className="text-xs text-gray-400">Vendor: {product.vendor}</p>
+                  <p className="text-xs text-gray-500">
+                    Model: {product.productCode}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Vendor: {product.vendor}
+                  </p>
+                  <Popover>
+                    <PopoverTrigger className="text-md text-blue-600 font-bold cursor-pointer">
+                      ₹{product.currentPrice}
+                    </PopoverTrigger>
+                    <PopoverContent className="text-sm bg-white p-2 rounded shadow-lg">
+                      <p className="text-green-600">Lowest Price: ₹{product.lowestPrice}</p>
+                      <p className="text-red-600">Highest Price: ₹{product.highestPrice}</p>
+                    </PopoverContent>
+                  </Popover>
                   {!product.isAvailable && (
-                    <p className="mt-2 text-sm text-red-600 font-semibold">Out of Stock</p>
+                    <p className="mt-2 text-sm text-red-600 font-semibold">
+                      Out of Stock
+                    </p>
                   )}
                 </div>
               </CardContent>
