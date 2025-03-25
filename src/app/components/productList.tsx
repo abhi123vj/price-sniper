@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useRouter } from "next/navigation";
 
 interface Product {
   _id: string;
@@ -32,6 +31,7 @@ export default function ProductList({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+  const router = useRouter();
 
   // Debounce search input to avoid excessive API calls
   useEffect(() => {
@@ -80,51 +80,62 @@ export default function ProductList({
         <p className="text-center text-gray-500">No products found.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.map((product) => (
-            <Card key={product._id} className="shadow-md p-3">
-              <CardContent className="p-0 flex flex-col items-center">
-                <Image
-                  width={1000}
-                  height={1000}
-                  src={product.imageUrl}
-                  alt={product.productName}
-                  className="w-full object-cover rounded-md bg-slate-200"
-                />
-                <div className="w-full text-center flex flex-col justify-evenly items-start">
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <h3 className="text-sm font-semibold line-clamp-1 overflow-hidden">
+          {products.map((product) => {
+            const averagePrice =
+              (product.lowestPrice + product.highestPrice) / 2;
+            const priceColor =
+              product.currentPrice < averagePrice
+                ? "text-green-600"
+                : product.currentPrice > averagePrice
+                ? "text-red-600"
+                : "text-blue-600";
+
+            return (
+              <Card
+                key={product._id}
+                className="shadow-md p-3 cursor-pointer"
+                onClick={() => router.push("/price-history/" + product._id)}
+                role="button"
+                tabIndex={0}
+              >
+                <CardContent className="p-0 flex flex-col items-center">
+                  <Image
+                    width={1000}
+                    height={1000}
+                    src={product.imageUrl}
+                    alt={product.productName}
+                    className="w-full object-cover rounded-md bg-slate-200"
+                  />
+                  <div className="w-full text-center flex flex-col justify-evenly items-start">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <h3 className="text-sm text-start font-semibold line-clamp-1 overflow-hidden">
+                          {product.productName}
+                        </h3>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-start">
                         {product.productName}
-                      </h3>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs text-start">
-                      {product.productName}
-                    </TooltipContent>
-                  </Tooltip>
-                  <p className="text-xs text-gray-500">
-                    Model: {product.productCode}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Vendor: {product.vendor}
-                  </p>
-                  <Popover>
-                    <PopoverTrigger className="text-md text-blue-600 font-bold cursor-pointer">
-                      ₹{product.currentPrice}
-                    </PopoverTrigger>
-                    <PopoverContent className="text-sm bg-white p-2 rounded shadow-lg">
-                      <p className="text-green-600">Lowest Price: ₹{product.lowestPrice}</p>
-                      <p className="text-red-600">Highest Price: ₹{product.highestPrice}</p>
-                    </PopoverContent>
-                  </Popover>
-                  {!product.isAvailable && (
-                    <p className="mt-2 text-sm text-red-600 font-semibold">
-                      Out of Stock
+                      </TooltipContent>
+                    </Tooltip>
+                    <p className="text-xs text-gray-500">
+                      Model: {product.productCode}
                     </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    <p className="text-xs text-gray-400">
+                      Vendor: {product.vendor}
+                    </p>
+                    <p className={`text-md font-bold ${priceColor}`}>
+                      ₹{product.currentPrice}
+                    </p>
+                    {!product.isAvailable && (
+                      <p className="mt-2 text-sm text-red-600 font-semibold">
+                        Out of Stock
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

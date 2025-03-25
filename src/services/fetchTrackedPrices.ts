@@ -45,3 +45,19 @@ export async function fetchTrackedProducts(searchQuery?: string) {
     return [];
   }
 }
+export async function fetchProductById(productId: string) {
+  try {
+    await connectDB();
+
+    const product = await ProductModel.findById(productId).lean();
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    return product;
+  } catch (error) {
+    console.error("❌ Error fetching product by ID:", error);
+    return null; // Return null if the product isn't found or an error occurs
+  }
+}
