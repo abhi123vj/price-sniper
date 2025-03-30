@@ -18,7 +18,7 @@ const Navbar = () => {
         {/* Desktop Links */}
         <div className="hidden md:flex space-x-6">
 
-          <Link href="/login" className="hover:text-blue-500 transition">Login Check</Link>
+          <Link href="/login" className="hover:text-blue-500 transition">Login</Link>
         </div>
 
         {/* Mobile Menu Button */}
