@@ -6,9 +6,6 @@ import {
   LineChart,
   Line,
   XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
 import { IProduct } from "@/models/Product";
@@ -18,13 +15,12 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "
 export default function PriceTracker() {
   const params = useParams<{ productId: string }>();
 
-  const [tracking, setTracking] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<IProduct>();
 
   useEffect(() => {
     async function fetchProducts() {
-      setLoading(true);
+      // setLoading(true);
       try {
         const res = await fetch(`/api/products/${params.productId}`);
         if (!res.ok) throw new Error("Failed to fetch products");
@@ -33,7 +29,7 @@ export default function PriceTracker() {
       } catch (error) {
         console.error("❌ Error fetching products:", error);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     }
 
