@@ -15,7 +15,7 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "
 export default function PriceTracker() {
   const params = useParams<{ productId: string }>();
 
-  // const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<IProduct>();
 
   useEffect(() => {
