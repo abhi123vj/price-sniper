@@ -24,7 +24,7 @@ const connectDB = async () => {
   }
 };
 
-// ✅ Fetch Products 
+// ✅ Fetch Products (No Global `isConnected` Variable)
 export async function fetchTrackedProducts(searchQuery?: string) {
   try {
     await connectDB();
