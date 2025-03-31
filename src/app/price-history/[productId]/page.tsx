@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -15,10 +14,12 @@ import {
   Line,
   XAxis,
   CartesianGrid,
+  ResponsiveContainer,
+  YAxis,
+  Tooltip,
 } from "recharts";
 import { IProduct } from "@/models/Product";
 import { useParams } from "next/navigation";
-import { Slider } from "@/components/ui/slider";
 import { formatCurrency } from "@/utils/converter";
 
 export default function PriceTracker() {
